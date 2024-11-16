@@ -1,7 +1,8 @@
 import datetime as dt
 
-from nautobot.apps.jobs import Job
-from nautobot.core.celery import register_jobs
+from nautobot.apps.jobs import Job, register_jobs
+# from nautobot.core.celery import register_jobs
+# from nautobot.apps.jobs import Job, register_jobs
 from nautobot.users.models import Token
 from nautobot.extras.models.secrets import Secret
 from nautobot.extras.secrets.exceptions import SecretError

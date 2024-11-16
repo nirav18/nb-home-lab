@@ -11,7 +11,7 @@ name = "AAA Config Policy Job"
 
 
 
-class TokenLifecycle(Job):
+class ConfigScan(Job):
 
     """
         AAA Config Policy Job
@@ -63,4 +63,4 @@ class TokenLifecycle(Job):
         else:
             return ("no objects found to delete")
 
-register_jobs(TokenLifecycle)
+register_jobs(ConfigScan)

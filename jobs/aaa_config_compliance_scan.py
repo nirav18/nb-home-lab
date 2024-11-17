@@ -60,6 +60,7 @@ class ConfigScan(Job):
             if not is_valid and not self.token_exception_list(t):
                 token_list.append({"t_user": t.user.username, "t_created": t.created.strftime("%Y-%m-%d %H:%M:%S UTC"), "t_id": t.id, "t_is_expired": t.is_expired, "t_key": t.key })
                 t.delete()
+                
         return token_list
 
     def run(self, **data):

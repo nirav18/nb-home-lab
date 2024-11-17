@@ -45,14 +45,19 @@ class ConfigScan(Job):
         is_valid = True
         ct = dt.datetime.now(dt.timezone.utc)
         for t in tokens:
+            
             if t.is_expired:
                 is_valid = False
-            if not t.expires:
-                if t.created.day < dt.datetime.now(dt.timezone.utc).day and not self.token_exception(t):
+                
+            if t.expires is not None:
+                if t.created.day < dt.datetime.now(dt.timezone.utc).day:
                     is_valid = False
-            if (t.expires - ct).total_seconds() > 86400:
-                is_valid = False
-            if not is_valid:
+                    
+            if t.expires:
+                if (t.expires - ct).total_seconds() > 86400:
+                    is_valid = False
+                    
+            if not is_valid and not self.token_exception_list(t):
                 token_list.append({"t_user": t.user.username, "t_created": t.created.strftime("%Y-%m-%d %H:%M:%S UTC"), "t_id": t.id, "t_is_expired": t.is_expired, "t_key": t.key })
                 t.delete()
         return token_list

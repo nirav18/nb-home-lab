@@ -7,7 +7,7 @@ from nautobot.apps.jobs import Job, register_jobs
 from nautobot.users.models import Token
 from nautobot.extras.models.secrets import Secret
 from nautobot.extras.secrets.exceptions import SecretError
-from nautobot.app.jobs import StringVar, IntegerVar, ObjectVar, MultiObjectVar, BooleanVar  
+from nautobot.apps.jobs import StringVar, IntegerVar, ObjectVar, MultiObjectVar, BooleanVar  
 from nautobot.dcim.models import (
     Device,
     DeviceRole,

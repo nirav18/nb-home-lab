@@ -8,15 +8,7 @@ from nautobot.users.models import Token
 from nautobot.extras.models.secrets import Secret
 from nautobot.extras.secrets.exceptions import SecretError
 from nautobot.apps.jobs import StringVar, IntegerVar, ObjectVar, MultiObjectVar, BooleanVar  
-from nautobot.dcim.models import (
-    Device,
-    DeviceRole,
-    DeviceType,
-    Manufacturer,
-    Platform,
-    Region,
-    Site,
-)
+from nautobot.dcim.models import Device
 
 from nautobot.tenancy.models import Tenant, TenantGroup
 
@@ -38,20 +30,8 @@ class ConfigScan(Job):
         commit_default = False
         has_sensitive_variables = False
     
-    tenant_group = MultiObjectVar(model=TenantGroup, required=False)
-    tenant = MultiObjectVar(model=Tenant, required=False)
-    region = MultiObjectVar(model=Region, required=False)
-    site = MultiObjectVar(model=Site, required=False)
-    role = MultiObjectVar(model=DeviceRole, required=False)
-    manufacturer = MultiObjectVar(model=Manufacturer, required=False)
-    platform = MultiObjectVar(model=Platform, required=False)
-    device_type = MultiObjectVar(model=DeviceType, required=False)
-    device = MultiObjectVar(model=Device, required=False)
-    dry_run = BooleanVar(
-        label="Dry run",
-        default=True,
-        required=False,
-    )
+    device = MultiObjectVar(model=Device, required=True)
+   
     
     def token_exception_list(self, t):
         try:

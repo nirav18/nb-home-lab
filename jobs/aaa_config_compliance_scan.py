@@ -1,5 +1,6 @@
 import datetime as dt
 
+
 from nautobot.apps.jobs import Job, register_jobs
 # from nautobot.core.celery import register_jobs
 # from nautobot.apps.jobs import Job, register_jobs
@@ -24,10 +25,19 @@ name = "AAA Config Policy Job"
 
 
 
+class ConfigScan(Job):
 
-class FormEntry:
-    """Form entries."""
+    """
+        AAA Config Policy Job
+    """
 
+    class Meta:
+        " Metadata needed to implement the backbone site design. "
+
+        name = "AAA Config Policy"
+        commit_default = False
+        has_sensitive_variables = False
+    
     tenant_group = MultiObjectVar(model=TenantGroup, required=False)
     tenant = MultiObjectVar(model=Tenant, required=False)
     region = MultiObjectVar(model=Region, required=False)
@@ -42,32 +52,6 @@ class FormEntry:
         default=True,
         required=False,
     )
-
-
-class ConfigScan(FormEntry, Job):
-
-    """
-        AAA Config Policy Job
-    """
-
-    class Meta:
-        " Metadata needed to implement the backbone site design. "
-
-        name = "AAA Config Policy"
-        commit_default = False
-        has_sensitive_variables = False
-    
-    tenant_group = FormEntry.tenant_group
-    tenant = FormEntry.tenant
-    region = FormEntry.region
-    site = FormEntry.site
-    role = FormEntry.role
-    manufacturer = FormEntry.manufacturer
-    platform = FormEntry.platform
-    device_type = FormEntry.device_type
-    device = FormEntry.device
-    dry_run = FormEntry.dry_run
-
     
     def token_exception_list(self, t):
         try:
@@ -107,7 +91,9 @@ class ConfigScan(FormEntry, Job):
                 
         return token_list
 
-    def run(self, **data):
+    def run(self, device):
+        self.logger.info(device)
+        
         resp = self.get_tokens()
         if len(resp) > 0:
             return (f"deleted objects: {resp}")

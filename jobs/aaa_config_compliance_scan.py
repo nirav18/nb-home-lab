@@ -6,13 +6,45 @@ from nautobot.apps.jobs import Job, register_jobs
 from nautobot.users.models import Token
 from nautobot.extras.models.secrets import Secret
 from nautobot.extras.secrets.exceptions import SecretError
+from nautobot.app.jobs import StringVar, IntegerVar, ObjectVar, MultiObjectVar, BooleanVar  
+from nautobot.dcim.models import (
+    Device,
+    DeviceRole,
+    DeviceType,
+    Manufacturer,
+    Platform,
+    Region,
+    Site,
+)
+
+from nautobot.tenancy.models import Tenant, TenantGroup
+
 
 name = "AAA Config Policy Job"
 
 
 
 
-class ConfigScan(Job):
+class FormEntry:
+    """Form entries."""
+
+    tenant_group = MultiObjectVar(model=TenantGroup, required=False)
+    tenant = MultiObjectVar(model=Tenant, required=False)
+    region = MultiObjectVar(model=Region, required=False)
+    site = MultiObjectVar(model=Site, required=False)
+    role = MultiObjectVar(model=DeviceRole, required=False)
+    manufacturer = MultiObjectVar(model=Manufacturer, required=False)
+    platform = MultiObjectVar(model=Platform, required=False)
+    device_type = MultiObjectVar(model=DeviceType, required=False)
+    device = MultiObjectVar(model=Device, required=False)
+    dry_run = BooleanVar(
+        label="Dry run",
+        default=True,
+        required=False,
+    )
+
+
+class ConfigScan(FormEntry, Job):
 
     """
         AAA Config Policy Job
@@ -24,6 +56,18 @@ class ConfigScan(Job):
         name = "AAA Config Policy"
         commit_default = False
         has_sensitive_variables = False
+    
+    tenant_group = FormEntry.tenant_group
+    tenant = FormEntry.tenant
+    region = FormEntry.region
+    site = FormEntry.site
+    role = FormEntry.role
+    manufacturer = FormEntry.manufacturer
+    platform = FormEntry.platform
+    device_type = FormEntry.device_type
+    device = FormEntry.device
+    dry_run = FormEntry.dry_run
+
     
     def token_exception_list(self, t):
         try:

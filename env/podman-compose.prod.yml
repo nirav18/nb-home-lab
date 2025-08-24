@@ -1,0 +1,102 @@
+version: "3.8"
+
+volumes:
+  nautobot-prod-data: {}
+  nautobot-prod-static: {}
+  nautobot-prod-redis: {}
+  nautobot-prod-postgres: {}
+  nautobot-prod-media: {}
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: nautobot-prod-postgres
+    environment:
+      POSTGRES_USER: nautobot
+      POSTGRES_PASSWORD: nautobot
+      POSTGRES_DB: nautobot
+    volumes:
+      - nautobot-prod-postgres:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: nautobot-prod-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - nautobot-prod-redis:/data
+
+  nautobot:
+    image: networktocode/nautobot:2.4.16
+    container_name: nautobot-prod
+    command: >
+      sh -c "
+        nautobot-server migrate &&
+        nautobot-server collectstatic --noinput &&
+        nautobot-server runserver 0.0.0.0:8080
+      "
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "8000:8080"
+    environment:
+      NAUTOBOT_DB_HOST: postgres
+      NAUTOBOT_DB_NAME: nautobot
+      NAUTOBOT_DB_USER: nautobot
+      NAUTOBOT_DB_PASSWORD: nautobot
+      NAUTOBOT_REDIS_HOST: redis
+      NAUTOBOT_ALLOWED_HOSTS: "*"
+      NAUTOBOT_SUPERUSER_NAME: admin
+      NAUTOBOT_SUPERUSER_EMAIL: admin@example.com
+      NAUTOBOT_SUPERUSER_PASSWORD: admin
+      NAUTOBOT_CONFIG: /opt/nautobot/nautobot_config.py
+    volumes:
+      - nautobot-prod-data:/opt/nautobot
+      - nautobot-prod-static:/opt/nautobot/static
+      - nautobot-prod-media:/opt/nautobot/media
+      - ./config/nautobot/nautobot_config.py:/opt/nautobot/nautobot_config.py
+      - ./jobs:/opt/nautobot/jobs
+    restart: unless-stopped
+
+  worker:
+    image: networktocode/nautobot:2.4.16
+    container_name: nautobot-worker-prod
+    command: >
+      sh -c "
+        nautobot-server migrate &&
+        nautobot-server collectstatic --noinput &&
+        nautobot-server celery worker -l INFO
+      "
+    depends_on:
+      - nautobot
+      - redis
+      - postgres
+    environment:
+      NAUTOBOT_DB_HOST: postgres
+      NAUTOBOT_DB_NAME: nautobot
+      NAUTOBOT_DB_USER: nautobot
+      NAUTOBOT_DB_PASSWORD: nautobot
+      NAUTOBOT_REDIS_HOST: redis
+      NAUTOBOT_ALLOWED_HOSTS: "*"
+      NAUTOBOT_CONFIG: /opt/nautobot/nautobot_config.py
+    volumes:
+      - nautobot-prod-data:/opt/nautobot
+      - nautobot-prod-static:/opt/nautobot/static
+      - nautobot-prod-media:/opt/nautobot/media
+      - ./config/nautobot/nautobot_config.py:/opt/nautobot/nautobot_config.py
+      - ./jobs:/opt/nautobot/jobs
+  
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:latest
+    container_name: nautobot-prod-nginx
+    depends_on:
+      - nautobot
+    ports:
+      - "80:80"
+    volumes:
+      - ./config/nginx/nautobot.conf:/etc/nginx/conf.d/default.conf:ro
+      - nautobot-prod-static:/opt/nautobot/static:ro
+      - nautobot-prod-media:/opt/nautobot/media:ro
+    restart: unless-stopped

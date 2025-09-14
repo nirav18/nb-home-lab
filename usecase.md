@@ -1,4 +1,6 @@
+
 ```mermaid
+%%{init: {'theme':'forest', 'securityLevel': 'strict' }}%%
 sequenceDiagram
     participant Eng as Network Engineer
     participant NB as Nautobot
